@@ -46,6 +46,11 @@ from .serializers import (
 )
 
 
+def is_google_auth_only():
+    """Check if Google OAuth is the only authentication method allowed."""
+    return getattr(settings, "GOOGLE_AUTH_ONLY", False)
+
+
 class CheckCredsV2(KnoxLoginView):
     permission_classes = (AllowAny,)
 
@@ -54,6 +59,14 @@ class CheckCredsV2(KnoxLoginView):
         return datetime.timedelta(seconds=180)
 
     def post(self, request, format=None):
+        # Block local login if Google auth is the only option
+        if is_google_auth_only():
+            AuditLog.audit_user_failed_login(
+                request.data.get("username", "unknown"),
+                debug_info={"ip": request._client_ip, "reason": "google_auth_only"}
+            )
+            return notify_error("Please use Google Sign-In to authenticate")
+
         # check credentials
         serializer = AuthTokenSerializer(data=request.data)
         if not serializer.is_valid():
@@ -86,6 +99,10 @@ class LoginViewV2(KnoxLoginView):
     permission_classes = (AllowAny,)
 
     def post(self, request, format=None):
+        # Block local login if Google auth is the only option
+        if is_google_auth_only():
+            return notify_error("Please use Google Sign-In to authenticate")
+
         valid = False
 
         serializer = AuthTokenSerializer(data=request.data)

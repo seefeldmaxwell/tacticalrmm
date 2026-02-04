@@ -2,10 +2,13 @@
 Copyright (c) 2024-present Amidaware Inc.
 This file is subject to the EE License Agreement.
 For details, see: https://license.tacticalrmm.com/ee
+
+Modified for y12.ai - Google OAuth as primary authentication
 """
 
 from django.urls import path, include, re_path
 from allauth.socialaccount.providers.openid_connect.views import callback
+from allauth.socialaccount.providers.google.views import oauth2_callback as google_callback
 from allauth.headless.socialaccount.views import RedirectToProviderView
 from allauth.headless.base.views import ConfigView
 
@@ -24,11 +27,14 @@ urlpatterns = [
             ]
         ),
     ),
+    # Google OAuth callback
+    path("google/login/callback/", google_callback, name="google_callback"),
     path("ssoproviders/", views.GetAddSSOProvider.as_view()),
     path("ssoproviders/<int:pk>/", views.GetUpdateDeleteSSOProvider.as_view()),
     path("ssoproviders/token/", views.GetAccessToken.as_view()),
     path("ssoproviders/settings/", views.GetUpdateSSOSettings.as_view()),
     path("ssoproviders/account/", views.DisconnectSSOAccount.as_view()),
+    path("auth/config/", views.GetAuthConfig.as_view()),
 ]
 
 allauth_urls = [

@@ -23,7 +23,8 @@ MAC_UNINSTALL = BASE_DIR / "core" / "mac_uninstall.sh"
 AUTH_USER_MODEL = "accounts.User"
 
 # latest release
-TRMM_VERSION = "1.4.0"
+Y12_VERSION = "1.4.0"
+TRMM_VERSION = Y12_VERSION  # Backwards compatibility
 
 # https://github.com/amidaware/tacticalrmm-web
 WEB_VERSION = "0.101.59"
@@ -34,6 +35,10 @@ APP_VER = "0.0.202"
 
 # https://github.com/amidaware/rmmagent
 LATEST_AGENT_VER = "2.10.0"
+
+# y12.ai Branding
+Y12_PRODUCT_NAME = "y12.ai RMM"
+Y12_DOMAIN = "rmm.y12.ai"
 
 MESH_VER = "1.1.32"
 
@@ -191,9 +196,9 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Tactical RMM API",
+    "TITLE": "y12.ai RMM API",
     "DESCRIPTION": "Simple and Fast remote monitoring and management tool",
-    "VERSION": TRMM_VERSION,
+    "VERSION": Y12_VERSION,
     "AUTHENTICATION_WHITELIST": ["tacticalrmm.auth.APIAuthentication"],
 }
 
@@ -218,6 +223,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.openid_connect",
+    "allauth.socialaccount.providers.google",
     "allauth.headless",
     "apiv3",
     "apiv4",

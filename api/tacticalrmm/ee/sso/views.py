@@ -15,7 +15,7 @@ from knox.views import LoginView as KnoxLoginView
 from python_ipware import IpWare
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import (
     ModelSerializer,
@@ -249,3 +249,27 @@ class GetUpdateSSOSettings(APIView):
             )
 
         return Response("ok")
+
+
+class GetAuthConfig(APIView):
+    """
+    Public endpoint to get authentication configuration.
+    Used by frontend to determine which authentication methods to display.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        google_auth_only = getattr(settings, "GOOGLE_AUTH_ONLY", False)
+        google_client_id = getattr(settings, "GOOGLE_OAUTH_CLIENT_ID", "")
+
+        core_settings = get_core_settings()
+
+        return Response({
+            "google_auth_only": google_auth_only,
+            "google_enabled": bool(google_client_id),
+            "google_client_id": google_client_id if google_auth_only else "",
+            "sso_enabled": core_settings.sso_enabled or google_auth_only,
+            "local_login_enabled": not google_auth_only and not core_settings.block_local_user_logon,
+            "product_name": getattr(settings, "Y12_PRODUCT_NAME", "y12.ai RMM"),
+            "version": getattr(settings, "Y12_VERSION", settings.TRMM_VERSION),
+        })
