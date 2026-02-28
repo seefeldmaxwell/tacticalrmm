@@ -1,0 +1,22 @@
+{
+  "name": "fl-license-scraper",
+  "version": "1.0.0",
+  "description": "Florida License Scraper & Job Board - Cloudflare Workers",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate": "wrangler d1 execute fl-licenses --file=./migrations/0001_schema.sql",
+    "db:migrate:local": "wrangler d1 execute fl-licenses --local --file=./migrations/0001_schema.sql",
+    "db:seed": "wrangler d1 execute fl-licenses --file=./migrations/0002_seed.sql",
+    "db:seed:local": "wrangler d1 execute fl-licenses --local --file=./migrations/0002_seed.sql"
+  },
+  "dependencies": {
+    "hono": "^4.4.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240620.0",
+    "typescript": "^5.5.0",
+    "wrangler": "^3.60.0"
+  }
+}

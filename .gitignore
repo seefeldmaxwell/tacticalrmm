@@ -1,52 +1,9 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-*.egg-info/
+node_modules/
 dist/
-build/
-eggs/
-*.egg
-.eggs/
-
-# Virtual environments
-venv/
-env/
-.venv/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Environment
-.env
-.env.local
-.env.production
-
-# Database
-db.sqlite3
-*.db
-
-# Static files (collected)
-staticfiles/
-
-# Media uploads
-media/
-
-# Coverage
-htmlcov/
-.coverage
-.coverage.*
-
-# Docker
-docker-compose.override.yml
-
-# OS
+.wrangler/
+.dev.vars
+*.log
 .DS_Store
 Thumbs.db
-
-# Logs
-*.log
+.vscode/
+.idea/

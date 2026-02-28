@@ -1,0 +1,20 @@
+name = "fl-license-scraper"
+main = "src/index.ts"
+compatibility_date = "2024-06-20"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+APP_NAME = "FL License Scraper & Job Board"
+DBPR_BASE_URL = "https://www.myfloridalicense.com/wl11.asp"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fl-licenses"
+database_id = "a00fba1d-6890-4847-a532-20ce9495f0be"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "1a6b80d9ed8b49d6b8db211d632cdb7c"
+
+[triggers]
+crons = ["0 */6 * * *"]

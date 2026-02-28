@@ -1,141 +1,97 @@
-# FL License Lookup
+# FL License Scraper & Job Board
 
-**Florida Skilled Trade License Scraper & Job Board**
-
-A platform for searching Florida DBPR (Department of Business and Professional Regulation) skilled trade licenses, viewing legal cases/disciplinary actions, and connecting homeowners with verified licensed contractors — similar to Angie's List.
+A Cloudflare Workers application that scrapes Florida DBPR (Department of Business and Professional Regulation) license data for skilled trades and provides an Angie's List-style job board.
 
 ## Features
 
-### License Search
-- Real-time lookup of Florida DBPR licenses by number, name, county, or trade
-- Covers 14+ skilled trades: electrical, plumbing, HVAC, general contractor, roofing, and more
-- Automatic caching with periodic refresh from DBPR
-- Full license history tracking (status changes, renewals, etc.)
-
-### Legal Case Search
-- View disciplinary actions, complaints, and legal cases against any license
-- Tracks fines, penalties, license actions (suspensions, revocations)
-- Sources: DBPR enforcement actions, Florida court records
-- Case documents and notes
-
-### Job Board (Angie's List Style)
-- Homeowners post projects and receive bids from licensed contractors
-- Contractor profiles with verified Florida licenses
-- Angie's List-style letter grade ratings (A through F)
-- Rating categories: quality, price, punctuality, professionalism, responsiveness
-- Contractor portfolio and review system
-- Budget ranges, urgency levels, location-based matching
-
-### REST API
-- Full API for all features (license lookup, legal cases, jobs, contractors)
-- Swagger/OpenAPI documentation at `/api/docs/`
-- Filtering, search, and pagination
+- **License Search**: Look up any FL skilled trade license by number or name
+- **14+ Trade Categories**: Electrical, Plumbing, HVAC, General Contractor, Roofing, and more
+- **Legal Cases**: Every tradesperson shows legal cases, disciplinary actions, and fines
+- **License Status**: Active/Delinquent/Suspended/Revoked status on every listing
+- **Reviews & Ratings**: Angie's List-style A-F letter grades with 5 rating categories
+- **Job Board**: Post jobs, receive bids from licensed contractors
+- **REST API**: Full JSON API at `/api/*`
+- **Scheduled Scraping**: Cron trigger refreshes stale license data
 
 ## Tech Stack
 
-- **Backend**: Django 4.2, Django REST Framework
-- **Scraping**: httpx, BeautifulSoup4, lxml
-- **Database**: PostgreSQL (SQLite for development)
-- **Task Queue**: Celery + Redis (background scraping)
-- **Frontend**: Django Templates, Bootstrap 5
-- **Container**: Docker & Docker Compose
+- **Runtime**: Cloudflare Workers
+- **Framework**: Hono
+- **Database**: Cloudflare D1 (SQLite)
+- **Cache**: Cloudflare KV
+- **Data Source**: Florida DBPR (myfloridalicense.com)
 
-## Quick Start
+## Deploy
+
+### Prerequisites
+
+- Node.js 18+
+- Cloudflare account
+- Wrangler CLI (`npm i -g wrangler`)
+
+### Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Login to Cloudflare
+wrangler login
+
+# Create D1 database
+wrangler d1 create fl-licenses
+
+# Create KV namespace
+wrangler kv namespace create CACHE
+
+# Update wrangler.toml with the database_id and KV id from above commands
+
+# Run migrations
+npm run db:migrate
+
+# Seed data
+npm run db:seed
+
+# Deploy
+npm run deploy
+```
 
 ### Local Development
 
 ```bash
-# Clone and setup
-git clone <repo-url>
-cd fl-license-scraper
+# Run migrations locally
+npm run db:migrate:local
+npm run db:seed:local
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Setup database
-python manage.py migrate
-python manage.py seed_data
-python manage.py createsuperuser
-
-# Run development server
-python manage.py runserver
-```
-
-### Docker
-
-```bash
-docker compose up --build
-```
-
-The app will be available at `http://localhost:8000`.
-
-## Management Commands
-
-```bash
-# Seed trade categories
-python manage.py seed_data
-
-# Look up a specific license
-python manage.py scrape_licenses --license EC13012345
-
-# Search by name
-python manage.py scrape_licenses --name "John Smith" --trade electrical
-
-# Scrape all licenses for a trade
-python manage.py scrape_licenses --trade plumbing
-
-# Scrape all trades
-python manage.py scrape_licenses --trade all
+# Start dev server
+npm run dev
 ```
 
 ## API Endpoints
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/licenses/` | List all licenses |
-| `GET /api/licenses/lookup/<license_number>/` | Look up a specific license (live scrape if needed) |
-| `GET /api/licenses/categories/` | List trade categories |
-| `GET /api/legal/cases/` | List legal cases |
-| `GET /api/legal/lookup/<license_number>/` | Get cases for a license |
-| `GET /api/jobs/postings/` | List job postings |
-| `GET /api/jobs/contractors/` | List verified contractors |
-| `GET /api/jobs/reviews/` | List reviews |
-| `GET /api/docs/` | Swagger API documentation |
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/licenses?q=` | GET | Search licenses |
+| `/api/licenses/:number` | GET | License detail with legal cases & reviews |
+| `/api/licenses/:number/scrape` | POST | Scrape/refresh from DBPR |
+| `/api/legal-cases` | GET | List legal cases |
+| `/api/contractors` | GET | List contractors |
+| `/api/contractors/:id` | GET | Contractor detail with reviews & legal |
+| `/api/jobs` | GET | List jobs |
+| `/api/jobs/:id` | GET | Job detail with bids |
+| `/api/reviews` | GET | List reviews |
+| `/api/trades` | GET | Trade categories |
 
-## Supported Florida Trades
+## Pages
 
-| Trade | License Prefix | DBPR Code |
-|-------|---------------|-----------|
-| Electrical Contractors | EC | 5102 |
-| Plumbing | CFC | 5901 |
-| Air Conditioning (HVAC) | CAC | 5001 |
-| General Contractor | CGC | 5301 |
-| Building Contractor | CBC | 5302 |
-| Roofing Contractor | CCC | 5303 |
-| Swimming Pool | CPC | 5304 |
-| Solar Contractor | CSC | 5305 |
-| Underground Utility | CUC | 5306 |
-| Alarm System | EF | 5100 |
-| Glass and Glazing | SCC | 5307 |
-| Mechanical Contractor | CMC | 5308 |
-| Sheet Metal Contractor | SMC | 5309 |
-| Pollutant Storage | PCS | 5310 |
-
-## Running Tests
-
-```bash
-pip install -r requirements-dev.txt
-pytest
-```
-
-## Environment Variables
-
-See `.env.example` for all configuration options.
-
-## License
-
-MIT
+| URL | Description |
+|---|---|
+| `/` | Home with stats, featured contractors, trade categories |
+| `/search?q=` | License search with results showing status, reviews, legal cases |
+| `/licenses/:number` | Full license detail with legal cases & reviews |
+| `/contractors` | Contractor directory with filters |
+| `/contractors/:id` | Contractor profile with reviews, legal cases, license status |
+| `/jobs` | Job board listing |
+| `/jobs/:id` | Job detail with bids showing contractor license & legal info |
+| `/trades` | All trade categories |
+| `/trades/:slug` | Licenses in a trade category |
