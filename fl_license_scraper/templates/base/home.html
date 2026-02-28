@@ -202,6 +202,13 @@
                                 {% endfor %}
                             </div>
                             <small class="text-muted">{{ contractor.total_reviews }} reviews</small>
+                            {% if contractor.license %}
+                                {% if contractor.license.status == "active" %}
+                                <div><span class="badge bg-success mt-1" style="font-size:.6rem"><i class="bi bi-shield-check"></i> Active License</span></div>
+                                {% else %}
+                                <div><span class="badge bg-warning text-dark mt-1" style="font-size:.6rem">{{ contractor.license.get_status_display }}</span></div>
+                                {% endif %}
+                            {% endif %}
                         </div>
                     </div>
                 </a>

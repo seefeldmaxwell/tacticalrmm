@@ -93,6 +93,9 @@
                                 {% if job.urgency == "urgent" %}
                                 <span class="badge bg-danger">Urgent</span>
                                 {% endif %}
+                                {% if job.requires_license %}
+                                <span class="badge bg-info"><i class="bi bi-shield-check"></i> License Required</span>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-4 text-md-end mt-2 mt-md-0">

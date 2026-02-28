@@ -93,17 +93,44 @@
                                 </div>
                             </div>
 
+                            <!-- License Status -->
                             <div class="mt-2">
+                                {% if contractor.license %}
+                                    {% if contractor.license.status == "active" %}
+                                        <span class="badge bg-success"><i class="bi bi-shield-check"></i> License Active</span>
+                                    {% elif contractor.license.status == "suspended" %}
+                                        <span class="badge bg-danger"><i class="bi bi-shield-x"></i> License Suspended</span>
+                                    {% elif contractor.license.status == "revoked" %}
+                                        <span class="badge bg-danger"><i class="bi bi-shield-x"></i> License Revoked</span>
+                                    {% elif contractor.license.status == "expired" %}
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-shield-exclamation"></i> License Expired</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary"><i class="bi bi-shield"></i> {{ contractor.license.get_status_display }}</span>
+                                    {% endif %}
+                                    <span class="badge bg-light text-dark">{{ contractor.license.license_number }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary"><i class="bi bi-shield-x"></i> No License on File</span>
+                                {% endif %}
                                 {% if contractor.is_verified %}
                                 <span class="badge bg-success"><i class="bi bi-check-circle"></i> Verified</span>
-                                {% endif %}
-                                {% if contractor.license %}
-                                <span class="badge bg-primary">{{ contractor.license.license_number }}</span>
                                 {% endif %}
                                 {% if contractor.insurance_verified %}
                                 <span class="badge bg-info">Insured</span>
                                 {% endif %}
                             </div>
+
+                            <!-- Legal Cases Warning -->
+                            {% if contractor.legal_case_count > 0 %}
+                            <div class="mt-2">
+                                <a href="{% url 'legal:license_cases' contractor.license.license_number %}" class="badge bg-danger text-decoration-none">
+                                    <i class="bi bi-exclamation-triangle"></i> {{ contractor.legal_case_count }} Legal Case{{ contractor.legal_case_count|pluralize }}
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="mt-2">
+                                <span class="badge bg-light text-success"><i class="bi bi-check-circle"></i> No Legal Cases</span>
+                            </div>
+                            {% endif %}
 
                             <div class="mt-2 small text-muted">
                                 <i class="bi bi-geo-alt"></i> {{ contractor.city }}{% if contractor.county %}, {{ contractor.county }}{% endif %}
@@ -114,7 +141,7 @@
                         </div>
                         <div class="card-footer bg-white">
                             <a href="{{ contractor.get_absolute_url }}" class="btn btn-outline-primary btn-sm w-100">
-                                View Profile & Reviews
+                                View Profile, Reviews & Legal History
                             </a>
                         </div>
                     </div>

@@ -84,6 +84,76 @@
                     </small>
                 </div>
             </div>
+
+            <!-- Reviews Section -->
+            {% if rating_summary or reviews %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0"><i class="bi bi-star-fill text-warning"></i> Reviews & Ratings</h4>
+                </div>
+                <div class="card-body">
+                    {% if rating_summary %}
+                    <div class="text-center mb-3">
+                        <div class="display-5 fw-bold
+                            {% if rating_summary.avg_rating >= 4.5 %}text-success
+                            {% elif rating_summary.avg_rating >= 3.5 %}text-primary
+                            {% elif rating_summary.avg_rating >= 2.5 %}text-warning
+                            {% else %}text-danger{% endif %}">
+                            {{ rating_summary.letter_grade }}
+                        </div>
+                        <div class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= rating_summary.avg_rating %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="text-muted">{{ rating_summary.avg_rating }}/5 from {{ rating_summary.total_reviews }} review{{ rating_summary.total_reviews|pluralize }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% for review in reviews %}
+                    <div class="mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ review.title }}</strong>
+                            <span class="text-warning">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.overall_rating %}
+                                        <i class="bi bi-star-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
+                        </div>
+                        <p class="small mb-1">{{ review.comment|truncatewords:30 }}</p>
+                        <small class="text-muted">
+                            By {{ review.reviewer.get_full_name|default:review.reviewer.username }}
+                            &middot; {{ review.created_at|timesince }} ago
+                            {% if review.would_hire_again %}
+                                &middot; <span class="text-success"><i class="bi bi-check"></i> Would hire again</span>
+                            {% endif %}
+                        </small>
+                    </div>
+                    {% endfor %}
+
+                    {% for profile in contractor_profiles %}
+                    <a href="{% url 'jobs:contractor_detail' profile.pk %}" class="btn btn-outline-primary btn-sm w-100 mt-2">
+                        View Full Profile & All Reviews
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-body text-center text-muted">
+                    <i class="bi bi-star display-4"></i>
+                    <p class="mt-2">No reviews yet for this license holder.</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <!-- Sidebar -->
@@ -93,7 +163,7 @@
                 <div class="card-header {% if legal_cases %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
                     <h5 class="mb-0">
                         {% if legal_cases %}
-                            <i class="bi bi-exclamation-triangle"></i> Legal Cases ({{ legal_cases.count }})
+                            <i class="bi bi-exclamation-triangle"></i> {{ legal_cases|length }} Legal Case{{ legal_cases|length|pluralize }}
                         {% else %}
                             <i class="bi bi-check-circle"></i> No Legal Cases
                         {% endif %}
@@ -110,7 +180,10 @@
                             <small class="text-muted">{{ case.get_case_type_display }}</small>
                             <span class="badge bg-{{ case.status }}">{{ case.get_status_display }}</span>
                             {% if case.fine_amount %}
-                                <br><small class="text-danger">${{ case.fine_amount|intcomma }} fine</small>
+                                <br><small class="text-danger fw-bold">${{ case.fine_amount|intcomma }} fine</small>
+                            {% endif %}
+                            {% if case.license_action %}
+                                <br><small class="text-danger">Action: {{ case.license_action }}</small>
                             {% endif %}
                             {% if case.filed_date %}
                                 <br><small class="text-muted">Filed: {{ case.filed_date }}</small>
@@ -118,7 +191,7 @@
                         </div>
                         {% endfor %}
                         <a href="{% url 'legal:license_cases' license.license_number %}" class="btn btn-outline-danger btn-sm w-100">
-                            View All Cases
+                            View All Cases & Details
                         </a>
                     {% else %}
                         <p class="text-success mb-0">

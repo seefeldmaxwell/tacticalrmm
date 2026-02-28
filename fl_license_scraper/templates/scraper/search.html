@@ -81,6 +81,7 @@
                     <th>Type</th>
                     <th>Status</th>
                     <th>City</th>
+                    <th>Reviews</th>
                     <th>Legal Cases</th>
                     <th></th>
                 </tr>
@@ -115,9 +116,23 @@
                     </td>
                     <td>{{ license.city }}</td>
                     <td>
-                        {% if license.has_legal_cases %}
+                        {% if license._avg_rating %}
+                            <span class="text-warning">
+                                {% if license._avg_rating >= 4.5 %}<i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                                {% elif license._avg_rating >= 3.5 %}<i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star"></i>
+                                {% elif license._avg_rating >= 2.5 %}<i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star"></i><i class="bi bi-star"></i>
+                                {% else %}<i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star"></i><i class="bi bi-star"></i><i class="bi bi-star"></i>
+                                {% endif %}
+                            </span>
+                            <br><small class="text-muted">{{ license._review_count }} review{{ license._review_count|pluralize }}</small>
+                        {% else %}
+                            <small class="text-muted">No reviews</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if license._legal_case_count > 0 %}
                             <a href="{% url 'legal:license_cases' license.license_number %}" class="badge bg-danger text-decoration-none">
-                                {{ license.legal_case_count }} case{{ license.legal_case_count|pluralize }}
+                                {{ license._legal_case_count }} case{{ license._legal_case_count|pluralize }}
                             </a>
                         {% else %}
                             <span class="badge bg-light text-success">Clean</span>

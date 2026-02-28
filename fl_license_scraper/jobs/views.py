@@ -21,7 +21,11 @@ def job_list(request):
     budget = request.GET.get("budget", "")
     query = request.GET.get("q", "").strip()
 
-    jobs = Job.objects.filter(status="open").select_related("posted_by", "category")
+    jobs = (
+        Job.objects.filter(status="open")
+        .select_related("posted_by", "category", "assigned_contractor", "assigned_contractor__license")
+        .prefetch_related("bids__contractor__license")
+    )
 
     if query:
         jobs = jobs.filter(
@@ -66,14 +70,31 @@ def job_detail(request, pk):
     # Increment view count
     Job.objects.filter(pk=pk).update(views_count=models.F("views_count") + 1)
 
-    bids = job.bids.select_related("contractor").order_by("amount")
+    bids = (
+        job.bids
+        .select_related("contractor", "contractor__license", "contractor__user")
+        .order_by("amount")
+    )
+
+    # Prefetch legal case counts for all bidding contractors
+    bid_list = list(bids if request.user == job.posted_by else bids[:3])
+    for bid in bid_list:
+        if bid.contractor.license:
+            bid.contractor._legal_case_count = bid.contractor.license.legal_cases.count()
+            bid.contractor._legal_cases = list(
+                bid.contractor.license.legal_cases.order_by("-filed_date")[:3]
+            )
+        else:
+            bid.contractor._legal_case_count = 0
+            bid.contractor._legal_cases = []
+
     user_bid = None
     if request.user.is_authenticated and hasattr(request.user, "contractor_profile"):
         user_bid = bids.filter(contractor=request.user.contractor_profile).first()
 
     context = {
         "job": job,
-        "bids": bids if request.user == job.posted_by else bids[:3],
+        "bids": bid_list,
         "user_bid": user_bid,
         "bid_form": BidForm() if not user_bid else None,
     }
@@ -159,9 +180,13 @@ def contractor_list(request):
     query = request.GET.get("q", "").strip()
     sort = request.GET.get("sort", "rating")
 
-    contractors = ContractorProfile.objects.filter(
-        is_verified=True
-    ).select_related("user", "license")
+    contractors = (
+        ContractorProfile.objects.filter(is_verified=True)
+        .select_related("user", "license", "license__category")
+        .annotate(
+            legal_case_count=Count("license__legal_cases", distinct=True),
+        )
+    )
 
     if query:
         contractors = contractors.filter(
@@ -207,14 +232,14 @@ def contractor_list(request):
 def contractor_detail(request, pk):
     """View a contractor's profile with reviews."""
     contractor = get_object_or_404(
-        ContractorProfile.objects.select_related("user", "license"),
+        ContractorProfile.objects.select_related("user", "license", "license__category"),
         pk=pk,
     )
     reviews = contractor.reviews.select_related("reviewer", "job").order_by("-created_at")[:20]
     portfolio = contractor.portfolio.order_by("-created_at")[:12]
     legal_cases = []
     if contractor.license:
-        legal_cases = contractor.license.legal_cases.order_by("-filed_date")[:5]
+        legal_cases = list(contractor.license.legal_cases.order_by("-filed_date"))
 
     # Rating breakdown
     rating_breakdown = {}
