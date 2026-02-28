@@ -1,0 +1,49 @@
+{% extends "base/layout.html" %}
+{% load humanize %}
+
+{% block title %}{{ category.name }} Licenses - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'scraper:category_list' %}">Categories</a></li>
+            <li class="breadcrumb-item active">{{ category.name }}</li>
+        </ol>
+    </nav>
+
+    <h1>{{ category.name }}</h1>
+    <p class="text-muted">{{ category.description }}</p>
+
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>License #</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>City</th>
+                    <th>County</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for license in licenses %}
+                <tr>
+                    <td><a href="{{ license.get_absolute_url }}">{{ license.license_number }}</a></td>
+                    <td>{{ license.licensee_name }}</td>
+                    <td>
+                        {% if license.status == "active" %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ license.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ license.city }}</td>
+                    <td>{{ license.county }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,55 +1,141 @@
-# Tactical RMM
+# FL License Lookup
 
-![CI Tests](https://github.com/amidaware/tacticalrmm/actions/workflows/ci-tests.yml/badge.svg?branch=develop)
-[![codecov](https://codecov.io/gh/amidaware/tacticalrmm/branch/develop/graph/badge.svg?token=8ACUPVPTH6)](https://codecov.io/gh/amidaware/tacticalrmm)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
+**Florida Skilled Trade License Scraper & Job Board**
 
-Tactical RMM is a remote monitoring & management tool, built with Django and Vue.\
-It uses an [agent](https://github.com/amidaware/rmmagent) written in golang and integrates with [MeshCentral](https://github.com/Ylianst/MeshCentral)
-
-# [LIVE DEMO](https://demo.tacticalrmm.com/)
-
-Demo database resets every hour. A lot of features are disabled for obvious reasons due to the nature of this app.
-
-### [Discord Chat](https://discord.gg/upGTkWp)
-
-### [Documentation](https://docs.tacticalrmm.com)
+A platform for searching Florida DBPR (Department of Business and Professional Regulation) skilled trade licenses, viewing legal cases/disciplinary actions, and connecting homeowners with verified licensed contractors — similar to Angie's List.
 
 ## Features
 
-- Teamviewer-like remote desktop control
-- Real-time remote shell
-- Remote file browser (download and upload files)
-- Windows Registry Editor
-- Remote command and script execution (batch, powershell, python, nushell and deno scripts)
-- Event log viewer
-- Services management
-- Windows patch management
-- Automated checks with email/SMS/Webhook alerting (cpu, disk, memory, services, scripts, event logs)
-- Automated task runner (run scripts on a schedule)
-- Remote software installation via chocolatey
-- Software and hardware inventory
+### License Search
+- Real-time lookup of Florida DBPR licenses by number, name, county, or trade
+- Covers 14+ skilled trades: electrical, plumbing, HVAC, general contractor, roofing, and more
+- Automatic caching with periodic refresh from DBPR
+- Full license history tracking (status changes, renewals, etc.)
 
-## Windows agent versions supported
+### Legal Case Search
+- View disciplinary actions, complaints, and legal cases against any license
+- Tracks fines, penalties, license actions (suspensions, revocations)
+- Sources: DBPR enforcement actions, Florida court records
+- Case documents and notes
 
-- Windows 7, 8.1, 10, 11,
-- Server 2008R2, 2012R2, 2016, 2019, 2022, 2025
+### Job Board (Angie's List Style)
+- Homeowners post projects and receive bids from licensed contractors
+- Contractor profiles with verified Florida licenses
+- Angie's List-style letter grade ratings (A through F)
+- Rating categories: quality, price, punctuality, professionalism, responsiveness
+- Contractor portfolio and review system
+- Budget ranges, urgency levels, location-based matching
 
-## Linux agent versions supported
+### REST API
+- Full API for all features (license lookup, legal cases, jobs, contractors)
+- Swagger/OpenAPI documentation at `/api/docs/`
+- Filtering, search, and pagination
 
-- Any distro with systemd which includes but is not limited to: Debian (10, 11), Ubuntu x86_64 (18.04, 20.04, 22.04), Synology 7, centos, freepbx and more!
+## Tech Stack
 
-## Mac agent versions supported
+- **Backend**: Django 4.2, Django REST Framework
+- **Scraping**: httpx, BeautifulSoup4, lxml
+- **Database**: PostgreSQL (SQLite for development)
+- **Task Queue**: Celery + Redis (background scraping)
+- **Frontend**: Django Templates, Bootstrap 5
+- **Container**: Docker & Docker Compose
 
-- 64 bit Intel and Apple Silicon (M-Series)
+## Quick Start
 
-## Sponsorship Features
+### Local Development
 
-- Mac and Linux Agents
-- Windows [Code Signed](https://docs.tacticalrmm.com/code_signing/) Agents
-- Fully Customizable [Reporting](https://docs.tacticalrmm.com/ee/reporting/reporting_overview/) Module
-- [Single Sign-On](https://docs.tacticalrmm.com/ee/sso/sso/) (SSO)
+```bash
+# Clone and setup
+git clone <repo-url>
+cd fl-license-scraper
 
-## Installation / Backup / Restore / Usage
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate
 
-### Refer to the [documentation](https://docs.tacticalrmm.com)
+# Install dependencies
+pip install -r requirements.txt
+
+# Setup database
+python manage.py migrate
+python manage.py seed_data
+python manage.py createsuperuser
+
+# Run development server
+python manage.py runserver
+```
+
+### Docker
+
+```bash
+docker compose up --build
+```
+
+The app will be available at `http://localhost:8000`.
+
+## Management Commands
+
+```bash
+# Seed trade categories
+python manage.py seed_data
+
+# Look up a specific license
+python manage.py scrape_licenses --license EC13012345
+
+# Search by name
+python manage.py scrape_licenses --name "John Smith" --trade electrical
+
+# Scrape all licenses for a trade
+python manage.py scrape_licenses --trade plumbing
+
+# Scrape all trades
+python manage.py scrape_licenses --trade all
+```
+
+## API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/licenses/` | List all licenses |
+| `GET /api/licenses/lookup/<license_number>/` | Look up a specific license (live scrape if needed) |
+| `GET /api/licenses/categories/` | List trade categories |
+| `GET /api/legal/cases/` | List legal cases |
+| `GET /api/legal/lookup/<license_number>/` | Get cases for a license |
+| `GET /api/jobs/postings/` | List job postings |
+| `GET /api/jobs/contractors/` | List verified contractors |
+| `GET /api/jobs/reviews/` | List reviews |
+| `GET /api/docs/` | Swagger API documentation |
+
+## Supported Florida Trades
+
+| Trade | License Prefix | DBPR Code |
+|-------|---------------|-----------|
+| Electrical Contractors | EC | 5102 |
+| Plumbing | CFC | 5901 |
+| Air Conditioning (HVAC) | CAC | 5001 |
+| General Contractor | CGC | 5301 |
+| Building Contractor | CBC | 5302 |
+| Roofing Contractor | CCC | 5303 |
+| Swimming Pool | CPC | 5304 |
+| Solar Contractor | CSC | 5305 |
+| Underground Utility | CUC | 5306 |
+| Alarm System | EF | 5100 |
+| Glass and Glazing | SCC | 5307 |
+| Mechanical Contractor | CMC | 5308 |
+| Sheet Metal Contractor | SMC | 5309 |
+| Pollutant Storage | PCS | 5310 |
+
+## Running Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+## Environment Variables
+
+See `.env.example` for all configuration options.
+
+## License
+
+MIT

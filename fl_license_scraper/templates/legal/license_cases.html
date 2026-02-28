@@ -1,0 +1,39 @@
+{% extends "base/layout.html" %}
+{% load humanize %}
+
+{% block title %}Cases for {{ license_number }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1>Legal Cases for License {{ license_number }}</h1>
+    {% if total_fines %}
+    <div class="alert alert-warning">
+        <strong>Total Fines:</strong> ${{ total_fines|intcomma }}
+    </div>
+    {% endif %}
+
+    {% for case in cases %}
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h5><a href="{{ case.get_absolute_url }}">{{ case.case_number }}</a></h5>
+                    <p>{{ case.title }}</p>
+                </div>
+                <span class="badge bg-{{ case.status }} fs-6">{{ case.get_status_display }}</span>
+            </div>
+            <div class="row text-muted small">
+                <div class="col-auto">Type: {{ case.get_case_type_display }}</div>
+                {% if case.filed_date %}<div class="col-auto">Filed: {{ case.filed_date }}</div>{% endif %}
+                {% if case.fine_amount %}<div class="col-auto text-danger">Fine: ${{ case.fine_amount|intcomma }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-5">
+        <i class="bi bi-check-circle display-1 text-success"></i>
+        <h4>No legal cases found for this license.</h4>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

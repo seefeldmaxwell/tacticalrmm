@@ -1,0 +1,14 @@
+-r requirements.txt
+
+pytest>=7.4
+pytest-django>=4.7
+pytest-cov>=4.1
+factory-boy>=3.3
+faker>=22.0
+responses>=0.24
+flake8>=7.0
+black>=24.1
+isort>=5.13
+mypy>=1.8
+django-stubs>=4.2
+django-debug-toolbar>=4.2

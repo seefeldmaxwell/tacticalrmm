@@ -1,0 +1,143 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ site_name }}{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+                <i class="bi bi-shield-check"></i> FL License Lookup
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'scraper:search' %}">
+                            <i class="bi bi-search"></i> License Search
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'legal:search' %}">
+                            <i class="bi bi-gavel"></i> Legal Cases
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:job_list' %}">
+                            <i class="bi bi-briefcase"></i> Job Board
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'jobs:contractor_list' %}">
+                            <i class="bi bi-people"></i> Find Pros
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> {{ user.get_full_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'jobs:dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person"></i> Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'jobs:job_create' %}"><i class="bi bi-plus-circle"></i> Post a Job</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'account_logout' %}"><i class="bi bi-box-arrow-right"></i> Sign Out</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'account_login' %}">Sign In</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-outline-light btn-sm ms-2 mt-1" href="{% url 'account_signup' %}">Sign Up Free</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5><i class="bi bi-shield-check"></i> FL License Lookup</h5>
+                    <p class="text-muted">
+                        Florida's trusted platform for verifying skilled trade licenses,
+                        checking legal records, and connecting with licensed contractors.
+                    </p>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6>Search</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'scraper:search' %}" class="text-muted text-decoration-none">License Lookup</a></li>
+                        <li><a href="{% url 'legal:search' %}" class="text-muted text-decoration-none">Legal Cases</a></li>
+                        <li><a href="{% url 'scraper:category_list' %}" class="text-muted text-decoration-none">Trade Categories</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6>Job Board</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'jobs:job_list' %}" class="text-muted text-decoration-none">Browse Jobs</a></li>
+                        <li><a href="{% url 'jobs:contractor_list' %}" class="text-muted text-decoration-none">Find Contractors</a></li>
+                        <li><a href="{% url 'jobs:job_create' %}" class="text-muted text-decoration-none">Post a Job</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6>For Contractors</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'accounts:contractor_register' %}" class="text-muted text-decoration-none">Register</a></li>
+                        <li><a href="{% url 'about' %}" class="text-muted text-decoration-none">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6>Data Source</h6>
+                    <p class="text-muted small">
+                        License data sourced from the Florida Department of Business &amp;
+                        Professional Regulation (DBPR).
+                    </p>
+                </div>
+            </div>
+            <hr class="border-secondary">
+            <p class="text-center text-muted small mb-0">
+                &copy; 2026 FL License Lookup. Not affiliated with the State of Florida or DBPR.
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

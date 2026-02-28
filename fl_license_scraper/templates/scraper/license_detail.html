@@ -1,0 +1,155 @@
+{% extends "base/layout.html" %}
+{% load humanize %}
+
+{% block title %}{{ license.license_number }} - {{ license.licensee_name }} | {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'scraper:search' %}">License Search</a></li>
+            {% if license.category %}
+            <li class="breadcrumb-item"><a href="{{ license.category.get_absolute_url }}">{{ license.category.name }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ license.license_number }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Main Info -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0">{{ license.licensee_name }}</h2>
+                    {% if license.status == "active" %}
+                        <span class="badge bg-success fs-6">Active</span>
+                    {% elif license.status == "suspended" %}
+                        <span class="badge bg-danger fs-6">Suspended</span>
+                    {% elif license.status == "revoked" %}
+                        <span class="badge bg-danger fs-6">Revoked</span>
+                    {% else %}
+                        <span class="badge bg-secondary fs-6">{{ license.get_status_display }}</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if license.business_name %}
+                    <p class="text-muted mb-1"><strong>Business:</strong> {{ license.business_name }}</p>
+                    {% endif %}
+                    {% if license.dba_name %}
+                    <p class="text-muted mb-1"><strong>DBA:</strong> {{ license.dba_name }}</p>
+                    {% endif %}
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless">
+                                <tr><th>License #</th><td>{{ license.license_number }}</td></tr>
+                                <tr><th>Type</th><td>{{ license.license_type }}</td></tr>
+                                {% if license.rank %}<tr><th>Rank</th><td>{{ license.get_rank_display }}</td></tr>{% endif %}
+                                {% if license.category %}<tr><th>Trade</th><td>{{ license.category.name }}</td></tr>{% endif %}
+                                {% if license.qualifier_name %}<tr><th>Qualifier</th><td>{{ license.qualifier_name }}</td></tr>{% endif %}
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless">
+                                {% if license.original_issue_date %}<tr><th>Issued</th><td>{{ license.original_issue_date }}</td></tr>{% endif %}
+                                {% if license.effective_date %}<tr><th>Effective</th><td>{{ license.effective_date }}</td></tr>{% endif %}
+                                {% if license.expiration_date %}<tr><th>Expires</th><td>{{ license.expiration_date }}</td></tr>{% endif %}
+                                {% if license.last_renewal_date %}<tr><th>Last Renewed</th><td>{{ license.last_renewal_date }}</td></tr>{% endif %}
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if license.address_line1 or license.city %}
+                    <hr>
+                    <h5>Location</h5>
+                    <p>
+                        {% if license.address_line1 %}{{ license.address_line1 }}<br>{% endif %}
+                        {% if license.address_line2 %}{{ license.address_line2 }}<br>{% endif %}
+                        {{ license.city }}{% if license.state %}, {{ license.state }}{% endif %} {{ license.zip_code }}
+                        {% if license.county %}<br>{{ license.county }} County{% endif %}
+                    </p>
+                    {% endif %}
+
+                    {% if license.dbpr_url %}
+                    <a href="{{ license.dbpr_url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-box-arrow-up-right"></i> View on DBPR
+                    </a>
+                    {% endif %}
+
+                    <small class="text-muted d-block mt-3">
+                        Last updated: {{ license.last_scraped|timesince }} ago
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Legal Cases -->
+            <div class="card shadow-sm mb-4 {% if legal_cases %}border-danger{% endif %}">
+                <div class="card-header {% if legal_cases %}bg-danger text-white{% else %}bg-success text-white{% endif %}">
+                    <h5 class="mb-0">
+                        {% if legal_cases %}
+                            <i class="bi bi-exclamation-triangle"></i> Legal Cases ({{ legal_cases.count }})
+                        {% else %}
+                            <i class="bi bi-check-circle"></i> No Legal Cases
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if legal_cases %}
+                        {% for case in legal_cases %}
+                        <div class="mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                            <a href="{{ case.get_absolute_url }}" class="fw-bold text-decoration-none">
+                                {{ case.case_number }}
+                            </a>
+                            <br>
+                            <small class="text-muted">{{ case.get_case_type_display }}</small>
+                            <span class="badge bg-{{ case.status }}">{{ case.get_status_display }}</span>
+                            {% if case.fine_amount %}
+                                <br><small class="text-danger">${{ case.fine_amount|intcomma }} fine</small>
+                            {% endif %}
+                            {% if case.filed_date %}
+                                <br><small class="text-muted">Filed: {{ case.filed_date }}</small>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        <a href="{% url 'legal:license_cases' license.license_number %}" class="btn btn-outline-danger btn-sm w-100">
+                            View All Cases
+                        </a>
+                    {% else %}
+                        <p class="text-success mb-0">
+                            <i class="bi bi-check-circle"></i>
+                            No complaints, disciplinary actions, or legal cases found for this license.
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- License History -->
+            {% if history %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Recent Changes</h5>
+                </div>
+                <div class="card-body">
+                    {% for entry in history %}
+                    <div class="small mb-2">
+                        <strong>{{ entry.field_changed }}</strong> changed<br>
+                        <span class="text-muted">{{ entry.old_value|truncatewords:5 }}</span>
+                        &rarr;
+                        <span class="text-primary">{{ entry.new_value|truncatewords:5 }}</span>
+                        <br>
+                        <span class="text-muted">{{ entry.changed_at|timesince }} ago</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

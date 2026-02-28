@@ -1,0 +1,132 @@
+{% extends "base/layout.html" %}
+{% load humanize %}
+
+{% block title %}Case {{ case.case_number }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'legal:search' %}">Legal Cases</a></li>
+            <li class="breadcrumb-item active">{{ case.case_number }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="mb-0">Case {{ case.case_number }}</h2>
+                </div>
+                <div class="card-body">
+                    <h4>{{ case.title }}</h4>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless">
+                                <tr><th>Type</th><td>{{ case.get_case_type_display }}</td></tr>
+                                <tr><th>Status</th><td><span class="badge bg-{{ case.status }}">{{ case.get_status_display }}</span></td></tr>
+                                <tr><th>Severity</th><td>{{ case.get_severity_display }}</td></tr>
+                                <tr><th>Source</th><td>{{ case.get_source_display }}</td></tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm table-borderless">
+                                {% if case.filed_date %}<tr><th>Filed</th><td>{{ case.filed_date }}</td></tr>{% endif %}
+                                {% if case.incident_date %}<tr><th>Incident</th><td>{{ case.incident_date }}</td></tr>{% endif %}
+                                {% if case.hearing_date %}<tr><th>Hearing</th><td>{{ case.hearing_date }}</td></tr>{% endif %}
+                                {% if case.resolution_date %}<tr><th>Resolved</th><td>{{ case.resolution_date }}</td></tr>{% endif %}
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if case.description %}
+                    <hr>
+                    <h5>Description</h5>
+                    <p>{{ case.description }}</p>
+                    {% endif %}
+
+                    {% if case.violation_details %}
+                    <h5>Violation Details</h5>
+                    <p>{{ case.violation_details }}</p>
+                    {% endif %}
+
+                    {% if case.outcome %}
+                    <hr>
+                    <h5>Outcome</h5>
+                    <p>{{ case.outcome }}</p>
+                    {% endif %}
+
+                    {% if case.fine_amount or case.restitution_amount %}
+                    <div class="alert alert-warning">
+                        <h5>Financial Penalties</h5>
+                        {% if case.fine_amount %}<p>Fine: <strong>${{ case.fine_amount|intcomma }}</strong></p>{% endif %}
+                        {% if case.restitution_amount %}<p>Restitution: <strong>${{ case.restitution_amount|intcomma }}</strong></p>{% endif %}
+                        {% if case.penalty_description %}<p>{{ case.penalty_description }}</p>{% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if case.license_action %}
+                    <div class="alert alert-danger">
+                        <strong>License Action:</strong> {{ case.license_action }}
+                        {% if case.probation_period %}<br>Probation: {{ case.probation_period }}{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if documents %}
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0">Documents</h5></div>
+                <ul class="list-group list-group-flush">
+                    {% for doc in documents %}
+                    <li class="list-group-item">
+                        <i class="bi bi-file-earmark-text"></i>
+                        {% if doc.external_url %}
+                            <a href="{{ doc.external_url }}" target="_blank">{{ doc.title }}</a>
+                        {% else %}
+                            {{ doc.title }}
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <!-- License Info -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header"><h5 class="mb-0">License Information</h5></div>
+                <div class="card-body">
+                    <p>
+                        <strong>License #:</strong>
+                        <a href="{% url 'scraper:license_detail' case.license.license_number %}">
+                            {{ case.license.license_number }}
+                        </a>
+                    </p>
+                    <p><strong>Name:</strong> {{ case.license.licensee_name }}</p>
+                    <p><strong>Status:</strong> {{ case.license.get_status_display }}</p>
+                    {% if case.respondent_name %}
+                    <p><strong>Respondent:</strong> {{ case.respondent_name }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Related Cases -->
+            {% if related_cases %}
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0">Other Cases for This License</h5></div>
+                <ul class="list-group list-group-flush">
+                    {% for rcase in related_cases %}
+                    <li class="list-group-item">
+                        <a href="{{ rcase.get_absolute_url }}">{{ rcase.case_number }}</a>
+                        <br><small class="text-muted">{{ rcase.get_case_type_display }} - {{ rcase.get_status_display }}</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

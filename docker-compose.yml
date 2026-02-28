@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: fl_license_scraper
+      POSTGRES_USER: fl_scraper
+      POSTGRES_PASSWORD: fl_scraper_dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  web:
+    build: .
+    command: >
+      bash -c "python manage.py migrate &&
+               python manage.py seed_data &&
+               python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgres://fl_scraper:fl_scraper_dev@db:5432/fl_license_scraper
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  celery:
+    build: .
+    command: celery -A fl_license_scraper worker -l info
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgres://fl_scraper:fl_scraper_dev@db:5432/fl_license_scraper
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  celery-beat:
+    build: .
+    command: celery -A fl_license_scraper beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgres://fl_scraper:fl_scraper_dev@db:5432/fl_license_scraper
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+volumes:
+  postgres_data:

@@ -1,0 +1,35 @@
+{% extends "base/layout.html" %}
+{% load humanize %}
+
+{% block title %}Trade Categories - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1>Trade Categories</h1>
+    <p class="text-muted">Browse Florida skilled trade license categories.</p>
+
+    <div class="row g-3">
+        {% for cat in categories %}
+        <div class="col-md-4 col-lg-3">
+            <a href="{{ cat.get_absolute_url }}" class="text-decoration-none">
+                <div class="card h-100 shadow-sm border-0 hover-lift">
+                    <div class="card-body text-center">
+                        <i class="bi bi-tools display-4 text-primary"></i>
+                        <h5 class="mt-2 text-dark">{{ cat.name }}</h5>
+                        <p class="text-muted small">{{ cat.description|truncatewords:10 }}</p>
+                        <div>
+                            <span class="badge bg-primary">{{ cat.license_count|intcomma }} total</span>
+                            <span class="badge bg-success">{{ cat.active_count|intcomma }} active</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <p class="text-muted">No trade categories have been loaded yet. Run the scraper to populate data.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
